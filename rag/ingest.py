@@ -1,4 +1,3 @@
-
 """Chunk the policy docs, embed them with Gemini, and store them in Chroma."""
 import re
 from pathlib import Path
@@ -35,6 +34,10 @@ def main():
         config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
     )
 
+    vectors = [e.values or [] for e in (result.embeddings or [])]
+    if len(vectors) != len(chunks) or not all(vectors):
+        raise RuntimeError("Gemini returned missing embeddings; run ingest again.")
+
     db = chromadb.PersistentClient(path=str(CHROMA_DIR))
     try:
         db.delete_collection("policies")          # rebuild from scratch each run
@@ -44,7 +47,7 @@ def main():
     col.add(
         ids=[f"chunk-{i}" for i in range(len(chunks))],
         documents=[c["text"] for c in chunks],
-        embeddings=[e.values for e in result.embeddings],
+        embeddings=vectors,  # pyright: ignore[reportArgumentType]  (Chroma's hints are stricter than its runtime)
         metadatas=[{"doc": c["doc"], "section": c["section"]} for c in chunks],
     )
     print(f"Indexed {len(chunks)} chunks into {CHROMA_DIR}")

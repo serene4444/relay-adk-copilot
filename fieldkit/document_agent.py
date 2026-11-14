@@ -1,10 +1,11 @@
 from google.adk.agents import Agent
 
+from .config import MODEL
 from .tools import search_policies
 
 document_agent = Agent(
     name="document_agent",
-    model="gemini-3.8-flash",
+    model=MODEL,
     description="Answers questions about Linnet policies: returns, refunds, final sale, "
                 "shipping costs and times, and the quality promise.",
     instruction=(
