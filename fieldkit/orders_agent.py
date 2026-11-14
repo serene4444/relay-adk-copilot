@@ -26,6 +26,7 @@ orders_tools = McpToolset(
 orders_agent = Agent(
     name="orders_agent",
     model=MODEL,
+    output_key="order_facts",
     description="Looks up Linnet customer orders: what they bought, when, the price, "
                 "the status, and how many days ago it was ordered.",
     instruction=(
