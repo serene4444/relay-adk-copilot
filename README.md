@@ -8,6 +8,11 @@ FieldKit is built for **Linnet**, a fictional clothing brand with a free-spirite
 >
 > **Expected answer:** Yes. The dress was ordered Oct 22, so it's inside the 30-day full-refund window through Nov 21, as long as it's unworn with tags attached. *(Answering this needs both the return policy from the documents and the order date from the database.)*
 
+<p align="center">
+  <img src="docs/images/example-answer.png" alt="FieldKit in the ADK dev UI answering that customer 1042 can still return the maxi dress for a full refund, 23 days after ordering, followed by the reviewer agent calling approve_answer" width="520">
+</p>
+<p align="center"><sub>The example question in the ADK dev UI: the coordinator's answer, then the reviewer agent's <code>approve_answer()</code> call.</sub></p>
+
 ---
 
 ## Architecture
@@ -44,10 +49,11 @@ flowchart TD
 ### Saturday: build it
 - [x] Hour 1: first agent running in `adk web`
 - [x] Hours 2–3: **Document agent**. Policies chunked, embedded with `gemini-embedding-001`, stored in Chroma, searched with the `search_policies` tool
-- [ ] Hours 4–5: **Orders agent**. Read-only order lookups exposed through an MCP serverok 
-- [ ] Hour 6: **Coordinator** delegates to both specialists by question type
-- [ ] Hour 7: **Reviewer agent** checks drafts against sources and sends them back once
-- [ ] Hour 8: Customer ID kept in session state; example question runs end to end
+- [x] Hours 4–5: **Orders agent**. Read-only order lookups exposed through an MCP server (`mcp` 2.x `MCPServer`, SQLite opened with `mode=ro`)
+- [x] Hour 6: **Coordinator** delegates to both specialists by question type, calling them in parallel when a question needs both
+- [x] Hour 7: **Reviewer agent** checks drafts against the retrieved sources and sends them back once (`LoopAgent`, `max_iterations=2`)
+- [x] Hour 8: Customer ID kept in session state; **example question answered correctly end to end** and approved by the reviewer
+- [ ] Follow-up question ("What about their jeans?") uses the remembered customer ID
 
 ### Sunday: prove it and ship it
 - [ ] 20-question evaluation set written and run
