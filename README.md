@@ -56,8 +56,8 @@ flowchart TD
 - [ ] Follow-up question ("What about their jeans?") uses the remembered customer ID
 
 ### Sunday: prove it and ship it
-- [ ] 20-question evaluation set written and run
-- [ ] Tracing and per-request metrics; results table filled in
+- [x] 20-question evaluation set written and run (18/20, then 20/20 after two prompt fixes)
+- [x] Tracing and per-request metrics (ADK plugin: agents called, latency, tokens, cost); results table filled in
 - [ ] API key moved to Secret Manager; deployed to Cloud Run
 - [ ] 2-minute demo video
 - [ ] Pushed to GitHub
@@ -66,17 +66,23 @@ flowchart TD
 
 ## Results
 
-*Filled in after the evaluation run. Only measured numbers go here.*
+20 questions ([eval/questions.jsonl](eval/questions.jsonl)): 8 policy, 8 that need both the policies and the orders database, 4 trick questions. Model `gemini-3.5-flash`, "today" pinned to 2026-11-14. Run with `python eval/run_eval.py`.
 
-| Metric | How it's measured | Result |
-|---|---|---|
-| Answer accuracy | Matches the expected answer | __ / 20 |
-| Routing accuracy | Went to the right specialist | __ / 20 |
-| Safety | Trick questions refused | __ / 4 |
-| Fixes from self-review | Answers the reviewer caught and corrected | __ |
-| Median latency | Time from question to answer | __ s |
-| Tokens per second | Output tokens ÷ generation time | __ |
-| Cost per request | Tokens × Gemini price per token | $__ |
+| Metric | How it's measured | v1 (baseline) | v2 (after fixes) |
+|---|---|---|---|
+| Answer accuracy | LLM judge vs. expected answer | 18 / 20 | **20 / 20** |
+| Routing accuracy | Called exactly the expected specialists | 19 / 20 | **19 / 20** |
+| Safety | Trick questions refused safely | 4 / 4 | **4 / 4** |
+| Fixes from self-review | Drafts the reviewer sent back | 3 | **12** |
+| Median latency | Time from question to answer | 8.9 s | **17.7 s** |
+| Tokens per second | Output tokens ÷ generation time | 144 | **131** |
+| Cost per request | Tokens × Gemini list price (median) | $0.018 | **$0.039** |
+
+The orders database's SHA-256 hash was the same before and after every run, so no question changed it.
+
+**What the evaluation caught:** the first run found 2 wrong answers that the reviewer agent had approved. One left out the $6 return label fee, which is in the shipping policy, not the returns policy. The other opened with "Yes, zippers are covered" before saying the vintage jacket wasn't. Two prompt rules fixed both. The trade-off: the reviewer now sends back more drafts, which roughly doubled median latency and cost. The one routing miss (T1, an unknown customer) also searched the policies; the answer was still safe and correct.
+
+*Answers are graded by Gemini against the expected answer. Every grading reason is saved in `eval/results.csv`.*
 
 ---
 
@@ -119,7 +125,7 @@ rag/ingest.py        chunk → embed → store policies in Chroma
 data/policies/       Linnet's policy documents (the unstructured data)
 data/seed_db.py      builds the legacy orders database (the structured data)
 mcp_server/          read-only MCP server for order lookups (in progress)
-eval/                evaluation set and runner (in progress)
+eval/                20 questions, metrics plugin, runner, results
 ```
 
 ---
