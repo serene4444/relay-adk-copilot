@@ -53,7 +53,7 @@ flowchart TD
 - [x] Hour 6: **Coordinator** delegates to both specialists by question type, calling them in parallel when a question needs both
 - [x] Hour 7: **Reviewer agent** checks drafts against the retrieved sources and sends them back once (`LoopAgent`, `max_iterations=2`)
 - [x] Hour 8: Customer ID kept in session state; **example question answered correctly end to end** and approved by the reviewer
-- [ ] Follow-up question ("What about their jeans?") uses the remembered customer ID
+- [x] Follow-up question ("What about their jeans?") uses the remembered customer ID: correctly says no, since order 5024 is 109 days old
 
 ### Sunday: prove it and ship it
 - [x] 20-question evaluation set written and run (18/20, then 20/20 after two prompt fixes)
