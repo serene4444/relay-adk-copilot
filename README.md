@@ -42,7 +42,7 @@ flowchart TD
 ### Friday: setup
 - [x] Python 3.12 virtual environment with `google-adk`, `chromadb`, `mcp`
 - [x] Gemini API key from Google AI Studio (in `fieldkit/.env`, not committed)
-- [ ] GCP project created
+- [x] GCP project created
 - [x] 3 policy docs: [returns](data/policies/returns.md), [shipping](data/policies/shipping.md), [quality promise](data/policies/quality.md)
 - [x] Legacy SQLite orders table with 50 rows ([seed_db.py](data/seed_db.py))
 
@@ -58,7 +58,7 @@ flowchart TD
 ### Sunday: prove it and ship it
 - [x] 20-question evaluation set written and run (18/20, then 20/20 after two prompt fixes)
 - [x] Tracing and per-request metrics (ADK plugin: agents called, latency, tokens, cost); results table filled in
-- [ ] API key moved to Secret Manager; deployed to Cloud Run
+- [x] API key moved to Secret Manager; deployed to Cloud Run ([live demo](https://fieldkit-632608060478.us-central1.run.app))
 - [ ] 2-minute demo video
 - [ ] Pushed to GitHub
 
@@ -113,7 +113,20 @@ adk web                    # open http://localhost:8000 and pick "fieldkit"
 
 Try: *"Can I return earrings?"*, *"Is a vintage jacket covered if the zipper breaks?"*
 
-**Live demo:** *Cloud Run link coming soon.*
+**Live demo:** <https://fieldkit-632608060478.us-central1.run.app> (pick **fieldkit** from the dropdown)
+
+### Deploy to Cloud Run
+
+The image bundles the prebuilt orders database and Chroma index ([Dockerfile](Dockerfile)). The Gemini API key lives in Secret Manager and is never put in the image; `.gcloudignore` excludes every `.env`.
+
+```powershell
+gcloud secrets create gemini-api-key --data-file=-
+gcloud run deploy fieldkit --source . --region us-central1 --allow-unauthenticated `
+  --set-secrets="GOOGLE_API_KEY=gemini-api-key:latest" `
+  --set-env-vars="FIELDKIT_TODAY=2026-11-14" --max-instances=1 --memory=1Gi
+```
+
+`FIELDKIT_TODAY` pins the date so the demo answers stay the same as the evaluation. `--max-instances=1` caps cost.
 
 ---
 
