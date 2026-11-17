@@ -60,7 +60,7 @@ flowchart TD
 - [x] Tracing and per-request metrics (ADK plugin: agents called, latency, tokens, cost); results table filled in
 - [x] API key moved to Secret Manager; deployed to Cloud Run ([live demo](https://fieldkit-632608060478.us-central1.run.app))
 - [ ] 2-minute demo video
-- [ ] Pushed to GitHub
+- [x] Pushed to GitHub
 
 ---
 
@@ -145,4 +145,9 @@ eval/                20 questions, metrics plugin, runner, results
 
 ## What I'd do next for a real customer
 
-*To be written after the build.*
+- **Persistent sessions.** Sessions live in memory, so a restart loses the conversation (this happened during the Cloud Run smoke test). Next step: Firestore or Cloud SQL through ADK's `--session_service_uri`.
+- **Make review cheaper.** The reviewer raised accuracy from 18/20 to 20/20, but median latency doubled (8.9 s to 17.7 s). Only review drafts that make a policy decision, or run the reviewer on a smaller model.
+- **Tighter routing.** For an unknown customer (T1), the coordinator also searched the policies unnecessarily. Look up the order first and stop if nothing is found.
+- **A stronger eval.** Grow the 20 questions into 100+ drawn from real tickets, have a person spot-check the LLM grader, and run the eval in CI on every prompt change.
+- **Lock down the demo.** Put it behind Identity-Aware Proxy (IAP) or add per-user rate limits, since anyone with the link spends API credits.
+- **Production data.** Replace the SQLite snapshot with a read-only replica of the real orders database, and re-ingest the policies automatically when they change.
